@@ -20,7 +20,8 @@ app.add_middleware(
 
 # AIモデルの準備
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-CLASS_NAMES = {0: "淡水魚以外 (Saltwater / Brackish etc.)", 1: "淡水魚 (Freshwater)"}
+# 🎯 修正後：0 と 1 の中身を逆にします
+CLASS_NAMES = {0: "淡水魚 (Freshwater)", 1: "淡水魚以外 (Saltwater / Brackish etc.)"}
 
 transform_pipeline = transforms.Compose([
     transforms.Resize((224, 224)),
