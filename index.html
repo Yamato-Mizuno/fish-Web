@@ -5,20 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>魚類分類 AIアプリ</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f4f7f6; margin-top: 50px; }
-        .container { background: white; padding: 30px; border-radius: 10px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        button { background: #007BFF; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        #result { margin-top: 20px; font-size: 18px; font-weight: bold; color: #333; }
+        body { 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            text-align: center; 
+            background: #f0f4f8; 
+            color: #333;
+            margin: 0;
+            padding: 50px 20px;
+        }
+        .container { 
+            background: white; 
+            padding: 40px 30px; 
+            border-radius: 12px; 
+            display: inline-block; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05); 
+            max-width: 450px;
+            width: 100%;
+        }
+        h2 {
+            color: #1e3a8a;
+            margin-top: 0;
+        }
+        .upload-box {
+            border: 2px dashed #cbd5e1;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f8fafc;
+            margin-bottom: 20px;
+        }
+        input[type="file"] {
+            font-size: 14px;
+        }
+        button { 
+            background: #2563eb; 
+            color: white; 
+            border: none; 
+            padding: 12px 24px; 
+            font-size: 16px; 
+            font-weight: bold;
+            border-radius: 6px; 
+            cursor: pointer; 
+            transition: background 0.2s;
+            width: 100%;
+        }
+        button:hover { 
+            background: #1d4ed8; 
+        }
+        #result { 
+            margin-top: 25px; 
+            padding: 15px;
+            border-radius: 6px;
+            background: #eff6ff;
+            font-size: 18px; 
+            font-weight: bold; 
+            color: #1e40af;
+            display: none; /* 初期状態は非表示 */
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🐟 魚類生息地 AI判定（HTML版）</h2>
-    <p>魚の画像を選択してアップロードしてください</p>
+    <h2>🐟 魚類生息地 AI判定</h2>
+    <p style="color: #64748b; margin-bottom: 25px;">魚の画像をアップロードして生息地をAI判定します</p>
     
-    <input type="file" id="imageInput" accept="image/*"><br><br>
+    <div class="upload-box">
+        <input type="file" id="imageInput" accept="image/*">
+    </div>
+    
     <button onclick="uploadImage()">AIで判定する</button>
 
     <div id="result"></div>
@@ -29,29 +83,48 @@
         const input = document.getElementById('imageInput');
         const resultDiv = document.getElementById('result');
         
+        // 画像が選択されていない場合のチェック
         if (input.files.length === 0) {
             alert('画像を選択してください！');
             return;
         }
 
-        resultDiv.innerText = "解析中...";
+        // 結果エリアを表示して「解析中」にする
+        resultDiv.style.display = "block";
+        resultDiv.style.background = "#f1f5f9";
+        resultDiv.style.color = "#475569";
+        resultDiv.innerText = "⏳ AIが画像を解析中...";
         
-        // 送信データの作成
+        // サーバーに送る形式にデータをまとめる
         const formData = new FormData();
         formData.append('file', input.files[0]);
 
         try {
-            // Pythonのサーバー(FastAPI)にデータを送信
+            // 🎯 大和さんのMacのローカルサーバー(FastAPI)にデータを送信
             const response = await fetch('http://127.0.0.1:8000/predict', {
                 method: 'POST',
                 body: formData
             });
+            
+            if (!response.ok) {
+                throw new Error('サーバー側でエラーが発生しました。');
+            }
+
             const data = await response.json();
             
-            // 結果を画面に表示
-            resultDiv.innerHTML = `判定結果: <span style="color:#007BFF;">${data.result_name}</span><br>確信度: ${data.confidence}%`;
+            // 判定に成功したら結果と確信度を表示
+            resultDiv.style.background = "#eff6ff";
+            resultDiv.style.color = "#1e40af";
+            resultDiv.innerHTML = `
+                <div style="font-size: 14px; color: #64748b; margin-bottom: 5px;">判定結果</div>
+                <div style="font-size: 22px; margin-bottom: 10px;">${data.result_name}</div>
+                <div style="font-size: 15px; font-weight: normal; color: #475569;">確信度: ${data.confidence}%</div>
+            `;
         } catch (error) {
-            resultDiv.innerText = "エラーが発生しました。サーバーが起動しているか確認してください。";
+            // サーバーが起動していない等のエラー処理
+            resultDiv.style.background = "#fef2f2";
+            resultDiv.style.color = "#991b1b";
+            resultDiv.innerText = "❌ エラー: Macのターミナルで uvicorn が起動しているか確認してください。";
             console.error(error);
         }
     }
