@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>魚類分類 AIアプリ</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f4f7f6; margin-top: 50px; }
+        .container { background: white; padding: 30px; border-radius: 10px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button { background: #007BFF; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; font-size: 18px; font-weight: bold; color: #333; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🐟 魚類生息地 AI判定（HTML版）</h2>
+    <p>魚の画像を選択してアップロードしてください</p>
+    
+    <input type="file" id="imageInput" accept="image/*"><br><br>
+    <button onclick="uploadImage()">AIで判定する</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    async function uploadImage() {
+        const input = document.getElementById('imageInput');
+        const resultDiv = document.getElementById('result');
+        
+        if (input.files.length === 0) {
+            alert('画像を選択してください！');
+            return;
+        }
+
+        resultDiv.innerText = "解析中...";
+        
+        // 送信データの作成
+        const formData = new FormData();
+        formData.append('file', input.files[0]);
+
+        try {
+            // Pythonのサーバー(FastAPI)にデータを送信
+            const response = await fetch('http://127.0.0.1:8000/predict', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            
+            // 結果を画面に表示
+            resultDiv.innerHTML = `判定結果: <span style="color:#007BFF;">${data.result_name}</span><br>確信度: ${data.confidence}%`;
+        } catch (error) {
+            resultDiv.innerText = "エラーが発生しました。サーバーが起動しているか確認してください。";
+            console.error(error);
+        }
+    }
+</script>
+
+</body>
+</html>
