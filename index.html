@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>魚類分類 AIアプリ</title>
+    <title>魚類分類 AIアプリ - FishNet実解析版</title>
     <style>
         body { 
             font-family: 'Helvetica Neue', Arial, sans-serif; 
@@ -19,12 +19,20 @@
             border-radius: 12px; 
             display: inline-block; 
             box-shadow: 0 8px 16px rgba(0,0,0,0.05); 
-            max-width: 450px;
+            max-width: 480px;
             width: 100%;
+            text-align: left;
         }
         h2 {
             color: #1e3a8a;
             margin-top: 0;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 25px;
         }
         .upload-box {
             border: 2px dashed #cbd5e1;
@@ -32,15 +40,21 @@
             border-radius: 8px;
             background: #f8fafc;
             margin-bottom: 20px;
+            text-align: center;
+            cursor: pointer;
         }
-        input[type="file"] {
-            font-size: 14px;
+        #preview {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 15px;
+            border-radius: 6px;
+            display: none;
         }
         button { 
             background: #2563eb; 
             color: white; 
             border: none; 
-            padding: 12px 24px; 
+            padding: 14px 24px; 
             font-size: 16px; 
             font-weight: bold;
             border-radius: 6px; 
@@ -53,13 +67,32 @@
         }
         #result { 
             margin-top: 25px; 
-            padding: 15px;
-            border-radius: 6px;
+            padding: 20px;
+            border-radius: 8px;
             background: #eff6ff;
-            font-size: 18px; 
-            font-weight: bold; 
-            color: #1e40af;
-            display: none; /* 初期状態は非表示 */
+            display: none; 
+        }
+        .meta-info {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #475569;
+            line-height: 1.6;
+            border-top: 1px solid #cbd5e1;
+            padding-top: 10px;
+        }
+        /* プログレスバーのスタリング */
+        .progress-container {
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            margin-top: 8px;
+            width: 100%;
+        }
+        .progress-bar {
+            background-color: #3b82f6;
+            height: 12px;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.4s ease;
         }
     </style>
 </head>
@@ -67,40 +100,53 @@
 
 <div class="container">
     <h2>🐟 魚類生息地 AI判定</h2>
-    <p style="color: #64748b; margin-bottom: 25px;">魚の画像をアップロードして生息地をAI判定します</p>
+    <p class="subtitle">FishNetデータセット基準の階層分類・生態形質実解析</p>
     
-    <div class="upload-box">
-        <input type="file" id="imageInput" accept="image/*">
+    <div class="upload-box" onclick="document.getElementById('imageInput').click()">
+        <span style="color: #64748b; font-size: 14px;">クリックして魚の画像を選択</span>
+        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handlePreview(this)">
+        <center><img id="preview" alt="選択された画像のプレビュー"></center>
     </div>
     
-    <button onclick="uploadImage()">AIで判定する</button>
+    <button onclick="uploadImage()">AIで解析する</button>
 
     <div id="result"></div>
 </div>
 
 <script>
+    // 画像選択時にプレビューを表示する処理
+    function handlePreview(input) {
+        const preview = document.getElementById('preview');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = "block";
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     async function uploadImage() {
         const input = document.getElementById('imageInput');
         const resultDiv = document.getElementById('result');
         
-        // 画像が選択されていない場合のチェック
         if (input.files.length === 0) {
             alert('画像を選択してください！');
             return;
         }
 
-        // 結果エリアを表示して「解析中」にする
+        // 解析中ステータスの表示
         resultDiv.style.display = "block";
         resultDiv.style.background = "#f1f5f9";
         resultDiv.style.color = "#475569";
-        resultDiv.innerText = "⏳ AIが画像を解析中...";
+        resultDiv.innerHTML = "⏳ <b>FishNetマルチタスクモデル展開中... 生態形質を実解析しています。</b>";
         
-        // サーバーに送る形式にデータをまとめる
         const formData = new FormData();
         formData.append('file', input.files[0]);
 
         try {
-            // 🎯 大和さんのMacのローカルサーバー(FastAPI)にデータを送信
+            // 大和さんのMacのローカルサーバー(FastAPI)に送信
             const response = await fetch('http://127.0.0.1:8000/predict', {
                 method: 'POST',
                 body: formData
@@ -112,19 +158,35 @@
 
             const data = await response.json();
             
-            // 判定に成功したら結果と確信度を表示
-            resultDiv.style.background = "#eff6ff";
-            resultDiv.style.color = "#1e40af";
+            // 淡水か否かで色を変更
+            if (data.is_freshwater) {
+                resultDiv.style.background = "#ecfdf5"; // 緑系
+                resultDiv.style.color = "#065f46";
+            } else {
+                resultDiv.style.background = "#fef2f2"; // 赤系
+                resultDiv.style.color = "#991b1b";
+            }
+            
+            // 結果HTMLのレンダリング
             resultDiv.innerHTML = `
-                <div style="font-size: 14px; color: #64748b; margin-bottom: 5px;">判定結果</div>
-                <div style="font-size: 22px; margin-bottom: 10px;">${data.result_name}</div>
-                <div style="font-size: 15px; font-weight: normal; color: #475569;">確信度: ${data.confidence}%</div>
+                <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; opacity: 0.8;">判定結果</div>
+                <div style="font-size: 22px; font-weight: bold; margin-bottom: 12px;">${data.result_name}</div>
+                
+                <div style="font-size: 14px; font-weight: bold;">淡水魚形質適合率: ${data.freshwater_score}%</div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar" style="width: ${data.freshwater_score}%; background-color: ${data.is_freshwater ? '#10b981' : '#ef4444'};"></div>
+                </div>
+
+                <div class="meta-info">
+                    <b>🧬 予測分類階層（FishNetアノテーション）：</b><br>
+                    • 目 (Order): ${data.predicted_order}<br>
+                    • 科 (Family): ${data.predicted_family}
+                </div>
             `;
         } catch (error) {
-            // サーバーが起動していない等のエラー処理
             resultDiv.style.background = "#fef2f2";
             resultDiv.style.color = "#991b1b";
-            resultDiv.innerText = "❌ エラー: Macのターミナルで uvicorn が起動しているか確認してください。";
+            resultDiv.innerHTML = "❌ <b>エラー:</b> Macのターミナルで <code>uvicorn main:app --reload</code> が正常に起動しているか確認してください。";
             console.error(error);
         }
     }
