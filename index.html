@@ -3,194 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>魚類分類 AIアプリ - FishNet実解析版</title>
+    <title>うぉ！ - 魚類識別アプリ</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Yuji+Syuku&display=swap" rel="stylesheet">
+
     <style>
-        body { 
-            font-family: 'Helvetica Neue', Arial, sans-serif; 
-            text-align: center; 
-            background: #f0f4f8; 
-            color: #333;
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 50px 20px;
+            padding: 0;
         }
-        .container { 
-            background: white; 
-            padding: 40px 30px; 
-            border-radius: 12px; 
-            display: inline-block; 
-            box-shadow: 0 8px 16px rgba(0,0,0,0.05); 
-            max-width: 480px;
-            width: 100%;
-            text-align: left;
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            /* 背景の綺麗なグラデーション */
+            background: linear-gradient(135deg, #e4efff 0%, #a1c7ff 100%);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
         }
-        h2 {
-            color: #1e3a8a;
-            margin-top: 0;
-            text-align: center;
+
+        /* 「うぉ！」のタイトル（理想の画像サイズに調整） */
+        .title {
+            font-family: 'Yuji Syuku', serif; 
+            font-size: 8rem; 
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 40px;
+            z-index: 10;
+            user-select: none;
+            text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.6);
         }
-        .subtitle {
-            text-align: center;
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 25px;
+
+        /* ==========================================
+           【新型】理想の魚の形を再現するCSS
+        ========================================== */
+        .fish-container {
+            position: relative;
+            display: flex;
+            align-items: center;
         }
-        .upload-box {
-            border: 2px dashed #cbd5e1;
-            padding: 20px;
-            border-radius: 8px;
-            background: #f8fafc;
-            margin-bottom: 20px;
-            text-align: center;
+
+        /* ぷっくり丸みのあるひし形の胴体 */
+        .fish-body {
+            background-color: #2563eb;
+            border-radius: 70% 70% 10% 10% / 15% 15% 15% 15%;
+            transform: rotate(-45deg);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+        }
+
+        /* シャープな直線の三角尾鰭 */
+        .fish-tail {
+            position: absolute;
+            background-color: #2563eb;
+            clip-path: polygon(0% 50%, 100% 0%, 100% 100%);
+        }
+
+        /* 中央の「アプリを開始」ボタン専用のサイズと文字調整 */
+        .start-btn {
+            text-decoration: none;
+            z-index: 10;
+            transition: transform 0.2s ease;
             cursor: pointer;
         }
-        #preview {
-            max-width: 100%;
-            max-height: 200px;
-            margin-top: 15px;
-            border-radius: 6px;
-            display: none;
+
+        .start-btn .fish-body {
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        button { 
-            background: #2563eb; 
-            color: white; 
-            border: none; 
-            padding: 14px 24px; 
-            font-size: 16px; 
+
+        /* 胴体が45度回転しているため、文字を逆回転させて真っ直ぐに戻す */
+        .start-btn-text {
+            transform: rotate(45deg);
+            color: white;
+            font-size: 1.4rem;
             font-weight: bold;
-            border-radius: 6px; 
-            cursor: pointer; 
-            transition: background 0.2s;
-            width: 100%;
+            font-family: 'Dela Gothic One', sans-serif;
+            white-space: nowrap;
+            user-select: none;
+            padding-left: 10px; /* 視覚的に中央にみせる調整 */
         }
-        button:hover { 
-            background: #1d4ed8; 
+
+        .start-btn .fish-tail {
+            width: 90px;
+            height: 120px;
+            right: -55px;
         }
-        #result { 
-            margin-top: 25px; 
-            padding: 20px;
-            border-radius: 8px;
-            background: #eff6ff;
-            display: none; 
+
+        /* アプリ開始ボタンのホバーエフェクト（ぷるぷる動く） */
+        .start-btn:hover {
+            animation: jelly 0.6s ease-in-out infinite alternate;
         }
-        .meta-info {
-            margin-top: 12px;
-            font-size: 14px;
-            color: #475569;
-            line-height: 1.6;
-            border-top: 1px solid #cbd5e1;
-            padding-top: 10px;
+
+        @keyframes jelly {
+            0% { transform: scale(1) rotate(0deg); }
+            100% { transform: scale(1.05) rotate(2deg); }
         }
-        /* プログレスバーのスタリング */
-        .progress-container {
-            background-color: #e2e8f0;
-            border-radius: 4px;
-            margin-top: 8px;
-            width: 100%;
+
+        /* ==========================================
+           背景を泳ぐ魚たちの設定（右から左へ）
+        ========================================== */
+        .swimming-fish {
+            position: absolute;
+            z-index: 1;
+            opacity: 0.9;
+            animation: swimLeft linear infinite;
         }
-        .progress-bar {
-            background-color: #3b82f6;
-            height: 12px;
-            border-radius: 4px;
-            width: 0%;
-            transition: width 0.4s ease;
+
+        .swimming-fish .fish-body {
+            width: 70px;
+            height: 70px;
+            background-color: #2563eb;
+        }
+
+        .swimming-fish .fish-tail {
+            width: 32px;
+            height: 42px;
+            right: -20px;
+            background-color: #2563eb;
+        }
+
+        /* 画像通りの配置とサイズ、泳ぐ速度のバラつきを設定 */
+        .fish1 { top: 18%; animation-duration: 14s; animation-delay: 0s; transform: scale(0.9); }
+        .fish2 { top: 35%; animation-duration: 18s; animation-delay: -4s; transform: scale(1.2); }
+        .fish3 { top: 70%; animation-duration: 11s; animation-delay: -2s; transform: scale(0.8); }
+        .fish4 { top: 82%; animation-duration: 16s; animation-delay: -7s; transform: scale(1.1); }
+        .fish5 { top: 52%; animation-duration: 13s; animation-delay: -11s; transform: scale(1.0); }
+
+        /* アニメーション：頭（左側）を先頭に、上下にゆったり揺れながら進む */
+        @keyframes swimLeft {
+            0% {
+                right: -200px;
+                margin-top: 0px;
+            }
+            50% {
+                margin-top: -10px; 
+            }
+            100% {
+                right: 110vw;
+                margin-top: 0px;
+            }
+        }
+
+        /* キラキラ・泡のエフェクト */
+        .sparkle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.4);
+            clip-path: polygon(50% 0%, 65% 35%, 100% 50%, 65% 65%, 50% 100%, 35% 65%, 0% 50%, 35% 35%);
+            animation: floatUp linear infinite;
+            z-index: 2;
+        }
+        .s1 { width: 15px; height: 15px; left: 15%; animation-duration: 9s; }
+        .s2 { width: 22px; height: 22px; left: 50%; animation-duration: 13s; animation-delay: 1s; }
+        .s3 { width: 12px; height: 12px; left: 85%; animation-duration: 7s; animation-delay: 3s; }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-110vh) rotate(180deg); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🐟 魚類生息地 AI判定</h2>
-    <p class="subtitle">FishNetデータセット基準の階層分類・生態形質実解析</p>
-    
-    <div class="upload-box" onclick="document.getElementById('imageInput').click()">
-        <span style="color: #64748b; font-size: 14px;">クリックして魚の画像を選択</span>
-        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handlePreview(this)">
-        <center><img id="preview" alt="選択された画像のプレビュー"></center>
-    </div>
-    
-    <button onclick="uploadImage()">AIで解析する</button>
+    <h1 class="title">うぉ！</h1>
 
-    <div id="result"></div>
-</div>
+    <a href="#" class="start-btn fish-container">
+        <div class="fish-body">
+            <span class="start-btn-text">アプリを開始</span>
+        </div>
+        <div class="fish-tail"></div>
+    </a>
 
-<script>
-    // 画像選択時にプレビューを表示する処理
-    function handlePreview(input) {
-        const preview = document.getElementById('preview');
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.style.display = "block";
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
+    <div class="swimming-fish fish-container fish1"><div class="fish-body"></div><div class="fish-tail"></div></div>
+    <div class="swimming-fish fish-container fish2"><div class="fish-body"></div><div class="fish-tail"></div></div>
+    <div class="swimming-fish fish-container fish3"><div class="fish-body"></div><div class="fish-tail"></div></div>
+    <div class="swimming-fish fish-container fish4"><div class="fish-body"></div><div class="fish-tail"></div></div>
+    <div class="swimming-fish fish-container fish5"><div class="fish-body"></div><div class="fish-tail"></div></div>
 
-    async function uploadImage() {
-        const input = document.getElementById('imageInput');
-        const resultDiv = document.getElementById('result');
-        
-        if (input.files.length === 0) {
-            alert('画像を選択してください！');
-            return;
-        }
-
-        // 解析中ステータスの表示
-        resultDiv.style.display = "block";
-        resultDiv.style.background = "#f1f5f9";
-        resultDiv.style.color = "#475569";
-        resultDiv.innerHTML = "⏳ <b>FishNetマルチタスクモデル展開中... 生態形質を実解析しています。</b>";
-        
-        const formData = new FormData();
-        formData.append('file', input.files[0]);
-
-        try {
-            // 大和さんのMacのローカルサーバー(FastAPI)に送信
-            const response = await fetch('http://127.0.0.1:8000/predict', {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (!response.ok) {
-                throw new Error('サーバー側でエラーが発生しました。');
-            }
-
-            const data = await response.json();
-            
-            // 淡水か否かで色を変更
-            if (data.is_freshwater) {
-                resultDiv.style.background = "#ecfdf5"; // 緑系
-                resultDiv.style.color = "#065f46";
-            } else {
-                resultDiv.style.background = "#fef2f2"; // 赤系
-                resultDiv.style.color = "#991b1b";
-            }
-            
-            // 結果HTMLのレンダリング
-            resultDiv.innerHTML = `
-                <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; opacity: 0.8;">判定結果</div>
-                <div style="font-size: 22px; font-weight: bold; margin-bottom: 12px;">${data.result_name}</div>
-                
-                <div style="font-size: 14px; font-weight: bold;">淡水魚形質適合率: ${data.freshwater_score}%</div>
-                <div class="progress-container">
-                    <div class="progress-bar" id="progressBar" style="width: ${data.freshwater_score}%; background-color: ${data.is_freshwater ? '#10b981' : '#ef4444'};"></div>
-                </div>
-
-                <div class="meta-info">
-                    <b>🧬 予測分類階層（FishNetアノテーション）：</b><br>
-                    • 目 (Order): ${data.predicted_order}<br>
-                    • 科 (Family): ${data.predicted_family}
-                </div>
-            `;
-        } catch (error) {
-            resultDiv.style.background = "#fef2f2";
-            resultDiv.style.color = "#991b1b";
-            resultDiv.innerHTML = "❌ <b>エラー:</b> Macのターミナルで <code>uvicorn main:app --reload</code> が正常に起動しているか確認してください。";
-            console.error(error);
-        }
-    }
-</script>
+    <div class="sparkle s1"></div>
+    <div class="sparkle s2"></div>
+    <div class="sparkle s3"></div>
 
 </body>
 </html>
