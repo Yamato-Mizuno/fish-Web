@@ -73,7 +73,7 @@
         .freshwater { background-color: #059669; } /* 緑 */
         .marine { background-color: #0284c7; }      /* 青 */
         .diadromous { background-color: #7c3aed; }  /* 紫 */
-        .unknown { background-color: #6b7280; }     /* グレー（魚以外用） */
+        .unknown { background-color: #6b7280; }     /* グレー */
 
         .detail-btn {
             display: inline-block;
@@ -84,17 +84,9 @@
             padding: 12px 30px;
             border-radius: 10px;
             font-weight: bold;
-            transition: background 0.2s, opacity 0.2s;
+            transition: background 0.2s;
         }
         .detail-btn:hover { background: #d97706; }
-        
-        /* ボタンが無効化されたときのスタイル */
-        .detail-btn.disabled {
-            background: #cbd5e1 !important;
-            color: #94a3b8;
-            cursor: not-allowed;
-            pointer-events: none; /* クリック不可にする */
-        }
     </style>
 </head>
 <body>
@@ -136,6 +128,8 @@
         const habitatResult = document.getElementById('habitat-result');
         const toDetailBtn = document.getElementById('to-detail-btn');
 
+        let currentFishInfo = null;
+
         imageSelector.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -152,46 +146,40 @@
             const fileName = file.name;
             let match = csvData.find(item => item.filename === fileName);
 
+            // 一致しない場合は、デモとしてランダムでデータを照合
+            if (!match) {
+                match = csvData[Math.floor(Math.random() * csvData.length)];
+            }
+
+            currentFishInfo = match;
+
+            // 3. 生息地の日本語化とクラス分け
             let habitatText = "不明";
             let habitatClass = "unknown";
 
-            // 3. 判定ロジックの変更（CSVにデータがある場合のみ魚として処理）
-            if (match) {
-                // ボタンの無効化を解除
-                toDetailBtn.classList.remove('disabled');
-
-                if (match.habitat.includes("freshwater")) {
-                    habitatText = "淡水魚";
-                    habitatClass = "freshwater";
-                } else if (match.habitat.includes("marine") || match.habitat.includes("misc")) {
-                    habitatText = "海水魚";
-                    habitatClass = "marine";
-                } else if (match.habitat.includes("diadromous")) {
-                    habitatText = "回遊魚";
-                    habitatClass = "diadromous";
-                }
-
-                // 詳細画面(detail.html)へのURLを設定
-                const params = new URLSearchParams({
-                    filename: match.filename,
-                    habitat: habitatText,
-                    face_value: match.face_value
-                });
-                toDetailBtn.href = `detail.html?${params.toString()}`;
-
-            } else {
-                // 【追加点】CSVにファイル名が存在しない＝人間など魚以外の画像と判定
-                habitatText = "魚以外（判定不能）❌";
-                habitatClass = "unknown";
-                
-                // 「詳細を表示」ボタンをグレーアウトしてクリックできないようにする
-                toDetailBtn.classList.add('disabled');
-                toDetailBtn.href = "#";
+            if (match.habitat.includes("freshwater")) {
+                habitatText = "淡水魚";
+                habitatClass = "freshwater";
+            } else if (match.habitat.includes("marine") || match.habitat.includes("misc")) {
+                habitatText = "海水魚";
+                habitatClass = "marine";
+            } else if (match.habitat.includes("diadromous")) {
+                habitatText = "回遊魚";
+                habitatClass = "diadromous";
             }
 
-            // 画面への反映
             habitatResult.textContent = habitatText;
             habitatResult.className = `habitat-badge ${habitatClass}`;
+
+            // 4. 詳細画面(detail.html)へのURLを設定
+            const params = new URLSearchParams({
+                filename: match.filename,
+                species: match.species,
+                habitat: habitatText,
+                family: match.family,
+                face_value: match.face_value
+            });
+            toDetailBtn.href = `detail.html?${params.toString()}`;
 
             // 結果エリアを表示
             resultArea.style.display = 'block';
