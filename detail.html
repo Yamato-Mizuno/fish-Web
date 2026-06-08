@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>魚の詳細情報</title>
+</head>
+<body>
+    <h1>魚類詳細データ</h1>
+    <p><strong>ファイル名:</strong> <span id="det-file"></span></p>
+    <p><strong>学名:</strong> <span id="det-species"></span></p>
+    <p><strong>科名:</strong> <span id="det-family"></span></p>
+    <p><strong>生息区分:</strong> <span id="det-habitat"></span></p>
+
+    <br>
+    <a href="fun.html">分析画面に戻る</a>
+
+    <script>
+        // URLのパラメータを解析して画面に表示する
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById('det-file').textContent = params.get('filename') || '---';
+        document.getElementById('det-species').textContent = params.get('species') || '---';
+        document.getElementById('det-family').textContent = params.get('family') || '---';
+        document.getElementById('det-habitat').textContent = params.get('habitat') || '---';
+    </script>
+</body>
+</html>
