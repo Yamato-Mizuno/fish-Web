@@ -72,7 +72,7 @@
         /* 生息地ごとの色分け */
         .freshwater { background-color: #059669; } /* 緑 */
         .marine { background-color: #0284c7; }      /* 青 */
-        .diadromous { background-color: #7c3aed; }  /* 紫（回遊魚用） */
+        .diadromous { background-color: #7c3aed; }  /* 紫 */
         .unknown { background-color: #6b7280; }     /* グレー */
 
         .detail-btn {
@@ -115,11 +115,11 @@
     </div>
 
     <script>
-        // CSVデータの定義 (JavaScript用オブジェクト配列)
+        // CSVデータの定義 (追加点：face_value項目を追加)
         const csvData = [
-            { filename: "Etcae_u2.jpg", species: "Etheostoma caeruleum", habitat: "freshwater", family: "Percidae" },
-            { filename: "Ambassis_miops.jpg", species: "Ambassis miops", habitat: "marine/misc", family: "Ambassidae" },
-            { filename: "salmon.jpg", species: "Oncorhynchus keta", habitat: "diadromous", family: "Salmonidae" } 
+            { filename: "Etcae_u2.jpg", species: "Etheostoma caeruleum", habitat: "freshwater", family: "Percidae", face_value: 0.995 },
+            { filename: "Ambassis_miops.jpg", species: "Ambassis miops", habitat: "marine/misc", family: "Ambassidae", face_value: 0.999 },
+            { filename: "salmon.jpg", species: "Oncorhynchus keta", habitat: "diadromous", family: "Salmonidae", face_value: 0.996 } 
         ];
 
         const imageSelector = document.getElementById('image-selector');
@@ -128,7 +128,6 @@
         const habitatResult = document.getElementById('habitat-result');
         const toDetailBtn = document.getElementById('to-detail-btn');
 
-        // グローバル変数に選択された魚の情報を一時保存
         let currentFishInfo = null;
 
         imageSelector.addEventListener('change', function(e) {
@@ -172,12 +171,13 @@
             habitatResult.textContent = habitatText;
             habitatResult.className = `habitat-badge ${habitatClass}`;
 
-            // 詳細画面(detail.html)へのURLを設定（クエリパラメータでデータを引き継ぐ）
+            // 4. 詳細画面(detail.html)へのURLを設定（追加点：face_valueもパラメータに含める）
             const params = new URLSearchParams({
                 filename: match.filename,
                 species: match.species,
                 habitat: habitatText,
-                family: match.family
+                family: match.family,
+                face_value: match.face_value
             });
             toDetailBtn.href = `detail.html?${params.toString()}`;
 

@@ -2,25 +2,165 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>魚の詳細情報</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>うぉ！ - 魚類詳細データ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            width: 100vw;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e4efff 0%, #a1c7ff 100%);
+            font-family: 'sans-serif';
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        h1 {
+            font-family: 'Dela Gothic One', sans-serif;
+            color: #1a1a1a;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        .info-group {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .info-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 1.2rem;
+            color: #1f2937;
+            font-weight: 500;
+        }
+        /* 差異表示用の装飾スタイル */
+        .diff-plus {
+            color: #dc2626; /* プラスは赤っぽく */
+            font-weight: bold;
+            margin-left: 10px;
+            font-size: 1rem;
+        }
+        .diff-minus {
+            color: #2563eb; /* マイナスは青っぽく */
+            font-weight: bold;
+            margin-left: 10px;
+            font-size: 1rem;
+        }
+        .diff-zero {
+            color: #059669; /* ぴったり同じは緑 */
+            font-weight: bold;
+            margin-left: 10px;
+            font-size: 1rem;
+        }
+        .back-btn {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .back-btn:hover { background: #1d4ed8; }
+    </style>
 </head>
 <body>
-    <h1>魚類詳細データ</h1>
-    <p><strong>ファイル名:</strong> <span id="det-file"></span></p>
-    <p><strong>学名:</strong> <span id="det-species"></span></p>
-    <p><strong>科名:</strong> <span id="det-family"></span></p>
-    <p><strong>生息区分:</strong> <span id="det-habitat"></span></p>
 
-    <br>
-    <a href="fun.html">分析画面に戻る</a>
+    <h1>魚類詳細データ</h1>
+
+    <div class="card">
+        <div class="info-group">
+            <div class="info-label">画像ファイル名</div>
+            <div id="det-filename" class="info-value">---</div>
+        </div>
+
+        <div class="info-group">
+            <div class="info-label">学名 (Species)</div>
+            <div id="det-species" class="info-value" style="font-style: italic;">---</div>
+        </div>
+
+        <div class="info-group">
+            <div class="info-label">科名 (Family)</div>
+            <div id="det-family" class="info-value">---</div>
+        </div>
+
+        <div class="info-group">
+            <div class="info-label">生息区分</div>
+            <div id="det-habitat" class="info-value">---</div>
+        </div>
+
+        <div class="info-group">
+            <div class="info-label">顔の特徴値 と 平均値との差異</div>
+            <div class="info-value">
+                <span id="det-face-value">---</span>
+                <span id="det-diff-value"></span>
+            </div>
+        </div>
+
+        <a href="fun.html" class="back-btn">カメラに戻る</a>
+    </div>
 
     <script>
-        // URLのパラメータを解析して画面に表示する
+        // URLのパラメータを解析
         const params = new URLSearchParams(window.location.search);
-        document.getElementById('det-file').textContent = params.get('filename') || '---';
-        document.getElementById('det-species').textContent = params.get('species') || '---';
-        document.getElementById('det-family').textContent = params.get('family') || '---';
-        document.getElementById('det-habitat').textContent = params.get('habitat') || '---';
+        
+        const filename = params.get('filename') || '不明なファイル';
+        const species = params.get('species') || '未登録';
+        const family = params.get('family') || '未登録';
+        const habitat = params.get('habitat') || '不明';
+        const faceValue = parseFloat(params.get('face_value')) || 0;
+
+        // 画面の基本項目に流し込み
+        document.getElementById('det-filename').textContent = filename;
+        document.getElementById('det-species').textContent = species;
+        document.getElementById('det-family').textContent = family;
+        document.getElementById('det-habitat').textContent = habitat;
+        document.getElementById('det-face-value').textContent = faceValue.toFixed(3);
+
+        // 基準平均値の定義
+        const averages = {
+            "淡水魚": 0.997,
+            "海水魚": 0.998,
+            "回遊魚": 0.996
+        };
+
+        // 差異の計算と表示処理
+        const diffElement = document.getElementById('det-diff-value');
+        
+        if (averages[habitat] !== undefined) {
+            const targetAverage = averages[habitat];
+            // JavaScriptの浮動小数点数の計算誤差を防ぐため、小数点第3位に丸める
+            const difference = parseFloat((faceValue - targetAverage).toFixed(3));
+            
+            if (difference > 0) {
+                diffElement.textContent = `(平均 +${difference.toFixed(3)})`;
+                diffElement.className = "diff-plus";
+            } else if (difference < 0) {
+                diffElement.textContent = `(平均 ${difference.toFixed(3)})`; // マイナス符号は自動でつきます
+                diffElement.className = "diff-minus";
+            } else {
+                diffElement.textContent = `(平均と同じ)`;
+                diffElement.className = "diff-zero";
+            }
+        }
     </script>
 </body>
 </html>
