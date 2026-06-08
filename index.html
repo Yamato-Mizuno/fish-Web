@@ -4,187 +4,113 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>うぉ！ - 魚類識別アプリ</title>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Yuji+Syuku&display=swap" rel="stylesheet">
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            width: 100vw;
-            height: 100vh;
-            /* 背景の綺麗なグラデーション */
-            background: linear-gradient(135deg, #e4efff 0%, #a1c7ff 100%);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-
-        /* 「うぉ！」のタイトル（理想の画像サイズに調整） */
-        .title {
-            font-family: 'Yuji Syuku', serif; 
-            font-size: 8rem; 
-            font-weight: bold;
-            color: #1a1a1a;
-            margin-bottom: 40px;
-            z-index: 10;
-            user-select: none;
-            text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.6);
-        }
-
-        /* ==========================================
-           【新型】理想の魚の形を再現するCSS
-        ========================================== */
-        .fish-container {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        /* ぷっくり丸みのあるひし形の胴体 */
-        .fish-body {
-            background-color: #2563eb;
-            border-radius: 70% 70% 10% 10% / 15% 15% 15% 15%;
-            transform: rotate(-45deg);
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
-        }
-
-        /* シャープな直線の三角尾鰭 */
-        .fish-tail {
-            position: absolute;
-            background-color: #2563eb;
-            clip-path: polygon(0% 50%, 100% 0%, 100% 100%);
-        }
-
-        /* 中央の「アプリを開始」ボタン専用のサイズと文字調整 */
-        .start-btn {
-            text-decoration: none;
-            z-index: 10;
-            transition: transform 0.2s ease;
-            cursor: pointer;
-        }
-
-        .start-btn .fish-body {
-            width: 200px;
-            height: 200px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* 胴体が45度回転しているため、文字を逆回転させて真っ直ぐに戻す */
-        .start-btn-text {
-            transform: rotate(45deg);
-            color: white;
-            font-size: 1.4rem;
-            font-weight: bold;
-            font-family: 'Dela Gothic One', sans-serif;
-            white-space: nowrap;
-            user-select: none;
-            padding-left: 10px; /* 視覚的に中央にみせる調整 */
-        }
-
-        .start-btn .fish-tail {
-            width: 90px;
-            height: 120px;
-            right: -55px;
-        }
-
-        /* アプリ開始ボタンのホバーエフェクト（ぷるぷる動く） */
-        .start-btn:hover {
-            animation: jelly 0.6s ease-in-out infinite alternate;
-        }
-
-        @keyframes jelly {
-            0% { transform: scale(1) rotate(0deg); }
-            100% { transform: scale(1.05) rotate(2deg); }
-        }
-
-        /* ==========================================
-           背景を泳ぐ魚たちの設定（右から左へ）
-        ========================================== */
-        .swimming-fish {
-            position: absolute;
-            z-index: 1;
-            opacity: 0.9;
-            animation: swimLeft linear infinite;
-        }
-
-        .swimming-fish .fish-body {
-            width: 70px;
-            height: 70px;
-            background-color: #2563eb;
-        }
-
-        .swimming-fish .fish-tail {
-            width: 32px;
-            height: 42px;
-            right: -20px;
-            background-color: #2563eb;
-        }
-
-        /* 画像通りの配置とサイズ、泳ぐ速度のバラつきを設定 */
-        .fish1 { top: 18%; animation-duration: 14s; animation-delay: 0s; transform: scale(0.9); }
-        .fish2 { top: 35%; animation-duration: 18s; animation-delay: -4s; transform: scale(1.2); }
-        .fish3 { top: 70%; animation-duration: 11s; animation-delay: -2s; transform: scale(0.8); }
-        .fish4 { top: 82%; animation-duration: 16s; animation-delay: -7s; transform: scale(1.1); }
-        .fish5 { top: 52%; animation-duration: 13s; animation-delay: -11s; transform: scale(1.0); }
-
-        /* アニメーション：頭（左側）を先頭に、上下にゆったり揺れながら進む */
-        @keyframes swimLeft {
-            0% {
-                right: -200px;
-                margin-top: 0px;
-            }
-            50% {
-                margin-top: -10px; 
-            }
-            100% {
-                right: 110vw;
-                margin-top: 0px;
-            }
-        }
-
-        /* キラキラ・泡のエフェクト */
-        .sparkle {
-            position: absolute;
-            background-color: rgba(255, 255, 255, 0.4);
-            clip-path: polygon(50% 0%, 65% 35%, 100% 50%, 65% 65%, 50% 100%, 35% 65%, 0% 50%, 35% 35%);
-            animation: floatUp linear infinite;
-            z-index: 2;
-        }
-        .s1 { width: 15px; height: 15px; left: 15%; animation-duration: 9s; }
-        .s2 { width: 22px; height: 22px; left: 50%; animation-duration: 13s; animation-delay: 1s; }
-        .s3 { width: 12px; height: 12px; left: 85%; animation-duration: 7s; animation-delay: 3s; }
-
-        @keyframes floatUp {
-            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(-110vh) rotate(180deg); opacity: 0; }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-    <h1 class="title">うぉ！</h1>
+    <!-- ────────────────────────── 画面1：トップ ────────────────────────── -->
+    <section id="screen-top" class="screen active">
+        <h1 class="title">うぉ！</h1>
+        <p class="subtitle">魚の顔から生息環境を判定</p>
 
-    <a href="#" class="start-btn fish-container">
-        <div class="fish-body">
-            <span class="start-btn-text">アプリを開始</span>
+        <a href="#" class="start-btn fish-container" onclick="goToUpload(event)">
+            <div class="fish-body">
+                <span class="start-btn-text">アプリを開始</span>
+            </div>
+            <div class="fish-tail"></div>
+        </a>
+    </section>
+
+    <!-- ────────────────────────── 画面2：アップロード ─────────────────── -->
+    <section id="screen-upload" class="screen">
+        <h2 class="screen-title">魚の画像をアップロード</h2>
+        <p class="hint">横向きの魚の顔がよく写った画像がベストです</p>
+
+        <div class="upload-area" id="upload-area">
+            <input type="file" id="image-input" accept="image/*" hidden>
+            <div class="upload-content" id="upload-placeholder">
+                <div class="upload-icon">🐟</div>
+                <p>クリックまたはドラッグで画像を選択</p>
+            </div>
+            <img id="preview" alt="">
         </div>
-        <div class="fish-tail"></div>
-    </a>
 
+        <button class="action-btn" id="predict-btn" disabled>判定する</button>
+        <button class="back-btn" onclick="goToTop()">← 戻る</button>
+    </section>
+
+    <!-- ────────────────────────── 画面3：結果 ─────────────────────────── -->
+    <section id="screen-result" class="screen">
+        <h2 class="screen-title">判定結果</h2>
+
+        <div class="result-card">
+            <div class="result-image-wrapper">
+                <img id="result-cropped" alt="クロップ画像">
+                <p class="caption">YOLOで検出した顔領域</p>
+            </div>
+
+            <div class="result-prediction">
+                <p class="label">この魚はおそらく…</p>
+                <h3 class="predicted" id="predicted-label">-</h3>
+                <p class="confidence">確信度: <span id="confidence">-</span></p>
+            </div>
+        </div>
+
+        <div class="probability-bars" id="probability-bars">
+            <!-- JSで動的生成 -->
+        </div>
+
+        <button class="action-btn" onclick="showDetails()">詳細結果を表示</button>
+        <button class="back-btn" onclick="goToUpload(null)">もう一度試す</button>
+    </section>
+
+    <!-- ────────────────────────── 詳細結果モーダル ─────────────────────── -->
+    <div id="details-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeDetails()">×</span>
+            <h2 class="modal-title">研究結果の詳細</h2>
+
+            <div class="detail-section">
+                <h3>差分画像（最大差）</h3>
+                <table class="data-table" id="diff-table"></table>
+            </div>
+
+            <div class="detail-section">
+                <h3>コサイン類似度行列</h3>
+                <table class="data-table" id="cosine-table"></table>
+            </div>
+
+            <div class="detail-section">
+                <h3>ペアごとの類似度</h3>
+                <ul class="pair-list" id="pair-list"></ul>
+            </div>
+
+            <div class="detail-section">
+                <h3>真のカテゴリ × 最も近い重心</h3>
+                <table class="data-table" id="nearest-table"></table>
+            </div>
+
+            <div class="detail-section highlight">
+                <h3>回遊魚個体の最近傍重心の内訳</h3>
+                <div class="breakdown" id="migratory-breakdown"></div>
+                <p class="interpretation">
+                    → 回遊魚は <strong>40%が海水魚の重心に最も近い</strong>。
+                    淡水魚に近いのは17%だけ。
+                    形態的には海水魚寄りの傾向。
+                </p>
+            </div>
+
+            <div class="detail-section">
+                <h3>モデル情報</h3>
+                <ul class="info-list" id="model-info"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 背景の泳ぐ魚たち（装飾） -->
     <div class="swimming-fish fish-container fish1"><div class="fish-body"></div><div class="fish-tail"></div></div>
     <div class="swimming-fish fish-container fish2"><div class="fish-body"></div><div class="fish-tail"></div></div>
     <div class="swimming-fish fish-container fish3"><div class="fish-body"></div><div class="fish-tail"></div></div>
@@ -195,5 +121,6 @@
     <div class="sparkle s2"></div>
     <div class="sparkle s3"></div>
 
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
