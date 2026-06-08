@@ -115,7 +115,7 @@
     </div>
 
     <script>
-        // CSVデータの定義 (追加点：face_value項目を追加)
+        // CSVデータの定義
         const csvData = [
             { filename: "Etcae_u2.jpg", species: "Etheostoma caeruleum", habitat: "freshwater", family: "Percidae", face_value: 0.995 },
             { filename: "Ambassis_miops.jpg", species: "Ambassis miops", habitat: "marine/misc", family: "Ambassidae", face_value: 0.999 },
@@ -171,7 +171,7 @@
             habitatResult.textContent = habitatText;
             habitatResult.className = `habitat-badge ${habitatClass}`;
 
-            // 4. 詳細画面(detail.html)へのURLを設定（追加点：face_valueもパラメータに含める）
+            // 4. 詳細画面(detail.html)へのURLを設定
             const params = new URLSearchParams({
                 filename: match.filename,
                 species: match.species,

@@ -50,13 +50,13 @@
         }
         /* 差異表示用の装飾スタイル */
         .diff-plus {
-            color: #dc2626; /* プラスは赤っぽく */
+            color: #dc2626; /* プラスは赤 */
             font-weight: bold;
             margin-left: 10px;
             font-size: 1rem;
         }
         .diff-minus {
-            color: #2563eb; /* マイナスは青っぽく */
+            color: #2563eb; /* マイナスは青 */
             font-weight: bold;
             margin-left: 10px;
             font-size: 1rem;
@@ -93,22 +93,12 @@
         </div>
 
         <div class="info-group">
-            <div class="info-label">学名 (Species)</div>
-            <div id="det-species" class="info-value" style="font-style: italic;">---</div>
-        </div>
-
-        <div class="info-group">
-            <div class="info-label">科名 (Family)</div>
-            <div id="det-family" class="info-value">---</div>
-        </div>
-
-        <div class="info-group">
             <div class="info-label">生息区分</div>
             <div id="det-habitat" class="info-value">---</div>
         </div>
 
         <div class="info-group">
-            <div class="info-label">顔の特徴値 と 平均値との差異</div>
+            <div id="det-diff-label" class="info-label">顔の特徴値 と 平均値との差異</div>
             <div class="info-value">
                 <span id="det-face-value">---</span>
                 <span id="det-diff-value"></span>
@@ -123,15 +113,11 @@
         const params = new URLSearchParams(window.location.search);
         
         const filename = params.get('filename') || '不明なファイル';
-        const species = params.get('species') || '未登録';
-        const family = params.get('family') || '未登録';
         const habitat = params.get('habitat') || '不明';
         const faceValue = parseFloat(params.get('face_value')) || 0;
 
-        // 画面の基本項目に流し込み
+        // 画面の基本項目に流し込み（学名・科名は項目を削ったため流し込みも削除）
         document.getElementById('det-filename').textContent = filename;
-        document.getElementById('det-species').textContent = species;
-        document.getElementById('det-family').textContent = family;
         document.getElementById('det-habitat').textContent = habitat;
         document.getElementById('det-face-value').textContent = faceValue.toFixed(3);
 
@@ -142,19 +128,23 @@
             "回遊魚": 0.996
         };
 
-        // 差異の計算と表示処理
+        const diffLabel = document.getElementById('det-diff-label');
         const diffElement = document.getElementById('det-diff-value');
         
         if (averages[habitat] !== undefined) {
             const targetAverage = averages[habitat];
-            // JavaScriptの浮動小数点数の計算誤差を防ぐため、小数点第3位に丸める
+            
+            // 【変更点】魚の種類に合わせて比較対象のラベルテキストを書き換える
+            diffLabel.textContent = `顔の特徴値 と ${habitat}の平均値との差異`;
+
+            // 小数点第3位までの引き算を実行
             const difference = parseFloat((faceValue - targetAverage).toFixed(3));
             
             if (difference > 0) {
                 diffElement.textContent = `(平均 +${difference.toFixed(3)})`;
                 diffElement.className = "diff-plus";
             } else if (difference < 0) {
-                diffElement.textContent = `(平均 ${difference.toFixed(3)})`; // マイナス符号は自動でつきます
+                diffElement.textContent = `(平均 ${difference.toFixed(3)})`;
                 diffElement.className = "diff-minus";
             } else {
                 diffElement.textContent = `(平均と同じ)`;
